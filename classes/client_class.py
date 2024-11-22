@@ -1,5 +1,5 @@
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.context import FSMContext
+
 
 class User(StatesGroup):
 
@@ -11,7 +11,9 @@ class User(StatesGroup):
         education_place = State()
         phone_number = State()
         type_of_work = State()
-        full_name = ""
+        age = State()
+        id_file = State()
+        id_account = State()
 
 
 client = User()
