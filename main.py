@@ -1,12 +1,12 @@
 import asyncio
-from aiogram import Bot,Dispatcher, F
+from aiogram import Dispatcher
 
-from app.handler import router
+from app.handler import router,bot
 
 
-
+#NOTE:доделать фильтрацию ввода ,сделать закачку фото из коложа и в виде документа ,закачка видео и других документов
 async def main():
-    bot = Bot(token='7962043379:AAGXTLRJIlnnDG0nfKHbrGmCkQ_FWo8zdYQ')
+
     dp = Dispatcher()
     dp.include_router(router)
     await dp.start_polling(bot)
