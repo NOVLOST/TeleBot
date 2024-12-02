@@ -2,6 +2,7 @@ from aiogram import F, Router,Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart, Command
+from openpyxl import load_workbook
 
 
 import app.keyboards as kb
@@ -36,7 +37,6 @@ async def registration(message: Message, state: FSMContext):
 async def reg_real_first_name(message: Message, state: FSMContext):
     await state.update_data(real_first_name = message.text )
     data = await state.get_data()
-    print(f'{data['real_first_name']}')
     await state.set_state(cl.client.real_second_name)
     await message.answer("Введите вашу фамилию")
 
@@ -107,16 +107,32 @@ async def photo_handler(message : Message,state: FSMContext):
     file_info = await bot.get_file(photo_id)
     data = await state.get_data()
     await bot.download_file(file_info.file_path,f'{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.jpg')
-    await message.answer(f"имя: {data["real_first_name"]}\n"
+    await message.answer(f"имя: {data['real_first_name']}\n"
                          f" фамилия: {data['real_second_name']}\n"
                          f" отчество: {data['real_third_name']}\n"
                          f" возраст: {data['age']}\n"
                          f" статус: {data['school_or_student']}\n"
-                         f" город: {data["city"]}\n"
-                         f" место обучения: {data["education_place"]}\n"
+                         f" город: {data['city']}\n"
+                         f" место обучения: {data['education_place']}\n"
                          f" телефон: {data['phone_number']}\n"
-                         f" тип работы: {data["type_of_work"]}")
+                         f" тип работы: {data['type_of_work']}")
+
+
+    fn = 'event.xlsx'
+    wb = load_workbook(fn)
+    ws = wb['Лист1']
+
+    ws.append([f"имя: {data['real_first_name']}",
+                         f" фамилия: {data['real_second_name']}",
+                         f" отчество: {data['real_third_name']}",
+                         f" возраст: {data['age']}",
+                         f" статус: {data['school_or_student']}",
+                         f" город: {data['city']}",
+                         f" место обучения: {data['education_place']}",
+                         f" телефон: {data['phone_number']}",
+                         f" тип работы: {data['type_of_work']}"])
+    wb.save(fn)
+    wb.close()
+
     await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)")
     await state.clear()
-
-
