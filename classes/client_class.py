@@ -14,7 +14,8 @@ class User(StatesGroup):
         age = State()
         id_file = State()
         id_account = State()
-        main_menu = State()
+        redux_mod = State()
+        redux_mod_2 = State()
 
 
 client = User()
