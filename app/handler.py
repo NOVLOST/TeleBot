@@ -8,11 +8,14 @@ import openpyxl
 
 import app.keyboards as kb
 import classes.client_class as cl
-
+from app.keyboards import start_keyboard
 
 router = Router()
 bot = Bot(token='7962043379:AAGXTLRJIlnnDG0nfKHbrGmCkQ_FWo8zdYQ')
-
+redux_row = 0
+choice_item = 0
+book_name = 'event.xlsx'
+sheet_name = 'event'
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     cl.client.full_name = message.from_user.full_name  # Полное имя пользователя
@@ -25,20 +28,55 @@ async def cmd_help(message: Message):
     await message.answer("Пройди короткую регистрацию для участия в конкурсе!")
 
 @router.message(F.text == "Редактировать заявку ✏️")
-async def cmd_red(message: Message):
+async def cmd_redux(message: Message,state: FSMContext):
+    global redux_row
     book = openpyxl.open('event.xlsx' ,read_only=True)
     sheet = book.active
     flag = False
-    for row in range(1,sheet.max_row):
-        if sheet[row][10].value == message.from_user.id:
-            await message.answer(f"имя:{sheet[row][0].value}"
-                                f"Фамилиия:{sheet[row][1].value}"
-                                f"Отчество:{sheet[row][1].value}")
+    for row in range(1,sheet.max_row+1):
+        print(sheet[row][9].value)
+        if sheet[row][9].value == str(message.from_user.id):
+            await message.answer(
+                                 f"имя: {sheet[row][0].value}\n"
+                                 f"фамилия: {sheet[row][1].value}\n"
+                                 f"отчество: {sheet[row][2].value}\n"
+                                 f"возраст: {sheet[row][3].value}\n"
+                                 f"статус: {sheet[row][4].value}\n"
+                                 f"город: {sheet[row][5].value}\n"
+                                 f"место обучения: {sheet[row][6].value}\n"
+                                 f"номер телефона: {sheet[row][7].value}\n"
+                                 f"тип работы: {sheet[row][8].value}"
+                                 )
             flag = True
+            redux_row = row
+            await state.set_state(cl.client.redux_mod)
+            await message.answer("Выберите один из пунктов на клавиатуре",reply_markup=kb.redux_bid)
         else:
             continue
     if flag == False:
         await message.answer("У вас нет заявок!")
+
+@router.message(cl.client.redux_mod)
+async def redux_mod(message: Message,state: FSMContext):
+    global choice_item
+    choice_item = int(message.text[0]) - 1
+    await state.set_state(cl.client.redux_mod_2)
+    await message.answer("Введите новое значение",reply_markup=ReplyKeyboardRemove())
+
+@router.message(cl.client.redux_mod_2)
+async def redux_mod(message: Message,state: FSMContext):
+    new_value = message.text
+
+    book = load_workbook(book_name)
+    sheet = book[sheet_name]
+    sheet[redux_row][choice_item].value = new_value
+    book.save(book_name)
+    book.close()
+
+
+    await state.clear()
+    await message.answer("Успешно! всегда рад помочь вам ^_^",reply_markup=start_keyboard)
+
 
 
 
@@ -49,6 +87,7 @@ async def cmd_red(message: Message):
 @router.message(F.text == "Создать новую заявку 📝")
 async def registration(message: Message, state: FSMContext):
     await state.update_data(id_account = message.from_user.id)
+    print(message.from_user.id)
     await state.set_state(cl.client.real_first_name)
     await message.answer('Введите ваше имя',reply_markup=ReplyKeyboardRemove())
 
@@ -147,21 +186,21 @@ async def photo_handler(message : Message,state: FSMContext):
 
 
     fn = 'event.xlsx'
-    wb = load_workbook(fn)
-    ws = wb['event']#ЕСЛИ не робит смотри сюда
+    wb = load_workbook(book_name)
+    ws = wb[sheet_name]
 
-    ws.append([f"имя: {data['real_first_name']}",
-                         f" фамилия: {data['real_second_name']}",
-                         f" отчество: {data['real_third_name']}",
-                         f" возраст: {data['age']}",
-                         f" статус: {data['school_or_student']}",
-                         f" город: {data['city']}",
-                         f" место обучения: {data['education_place']}",
-                         f" телефон: {data['phone_number']}",
-                         f" тип работы: {data['type_of_work']}",
-                         f"{data['id_account']}"
+    ws.append([f" {data['real_first_name']}",
+                         f" {data['real_second_name']}",
+                         f" {data['real_third_name']}",
+                         f" {data['age']}",
+                         f" {data['school_or_student']}",
+                         f" {data['city']}",
+                         f" {data['education_place']}",
+                         f" {data['phone_number']}",
+                         f" {data['type_of_work']}",
+                         f" {data['id_account']}"[1:]
                ])
-    wb.save(fn)
+    wb.save(book_name)
     wb.close()
 
 
