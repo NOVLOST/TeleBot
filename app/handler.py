@@ -1,8 +1,9 @@
 from aiogram import F, Router,Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery,ReplyKeyboardRemove
 from aiogram.filters import CommandStart, Command
 from openpyxl import load_workbook
+import openpyxl
 
 
 import app.keyboards as kb
@@ -23,6 +24,24 @@ async def cmd_start(message: Message):
 async def cmd_help(message: Message):
     await message.answer("Пройди короткую регистрацию для участия в конкурсе!")
 
+@router.message(F.text == "Редактировать заявку ✏️")
+async def cmd_red(message: Message):
+    book = openpyxl.open('event.xlsx' ,read_only=True)
+    sheet = book.active
+    flag = False
+    for row in range(1,sheet.max_row):
+        if sheet[row][10].value == message.from_user.id:
+            await message.answer(f"имя:{sheet[row][0].value}"
+                                f"Фамилиия:{sheet[row][1].value}"
+                                f"Отчество:{sheet[row][1].value}")
+            flag = True
+        else:
+            continue
+    if flag == False:
+        await message.answer("У вас нет заявок!")
+
+
+
 #-------------------------------------
 #РЕГИСТРАЦИЯ
 #-------------------------------------
@@ -31,7 +50,7 @@ async def cmd_help(message: Message):
 async def registration(message: Message, state: FSMContext):
     await state.update_data(id_account = message.from_user.id)
     await state.set_state(cl.client.real_first_name)
-    await message.answer('Введите ваше имя')
+    await message.answer('Введите ваше имя',reply_markup=ReplyKeyboardRemove())
 
 @router.message(cl.client.real_first_name)
 async def reg_real_first_name(message: Message, state: FSMContext):
@@ -56,13 +75,13 @@ async def reg_real_third_name(message: Message, state: FSMContext):
 async def reg_student(message: Message, state: FSMContext):
     await state.update_data(school_or_student = 'студент')
     await state.set_state(cl.client.city)
-    await message.answer("Введите ваш город проживания")
+    await message.answer("Введите ваш город проживания",reply_markup=ReplyKeyboardRemove())
 
 @router.message(F.text == 'Школьник')
 async def reg_school(message: Message, state: FSMContext):
     await state.update_data(school_or_student = 'школьник')
     await state.set_state(cl.client.city)
-    await message.answer("Введите ваш город проживания")
+    await message.answer("Введите ваш город проживания",reply_markup=ReplyKeyboardRemove())
 
 @router.message(cl.client.city)
 async def reg_city(message: Message, state: FSMContext):
@@ -82,6 +101,15 @@ async def reg_number(message: Message, state: FSMContext):
     await state.set_state(cl.client.age)
     await message.answer("Введите ваш возраст")
 
+@router.message(cl.client.phone_number,F.text)
+async def reg_number(message: Message, state: FSMContext):
+    if len(message.text) == 11:
+        await state.update_data(phone_number = message.text)
+        await state.set_state(cl.client.age)
+        await message.answer("Введите ваш возраст",reply_markup=ReplyKeyboardRemove())
+    else:
+        await message.answer("Неправильно набран номер")
+
 @router.message(cl.client.age)
 async def reg_age(message: Message, state: FSMContext):
     try:
@@ -94,7 +122,7 @@ async def reg_age(message: Message, state: FSMContext):
     except:
         await message.answer("Введите верный возраст!")
 
-@router.message(F.text)
+@router.message(cl.client.type_of_work)
 async def reg_work(message: Message, state: FSMContext):
     await state.update_data(type_of_work = message.text)
     await state.set_state(cl.client.id_file)
@@ -120,7 +148,7 @@ async def photo_handler(message : Message,state: FSMContext):
 
     fn = 'event.xlsx'
     wb = load_workbook(fn)
-    ws = wb['Лист1']
+    ws = wb['event']#ЕСЛИ не робит смотри сюда
 
     ws.append([f"имя: {data['real_first_name']}",
                          f" фамилия: {data['real_second_name']}",
@@ -130,9 +158,14 @@ async def photo_handler(message : Message,state: FSMContext):
                          f" город: {data['city']}",
                          f" место обучения: {data['education_place']}",
                          f" телефон: {data['phone_number']}",
-                         f" тип работы: {data['type_of_work']}"])
+                         f" тип работы: {data['type_of_work']}",
+                         f"{data['id_account']}"
+               ])
     wb.save(fn)
     wb.close()
 
-    await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)")
+
+
+    await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)", reply_markup=kb.start_keyboard)
     await state.clear()
+
