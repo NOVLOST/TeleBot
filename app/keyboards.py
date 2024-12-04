@@ -60,3 +60,38 @@ choice_type_of_work = ReplyKeyboardMarkup(
     resize_keyboard=True,
     input_field_placeholder="Выберите один из вариантов"
 )
+
+redux_bid = ReplyKeyboardMarkup(
+    keyboard = [
+        [
+            KeyboardButton(text = '1.Имя')
+        ],
+        [
+            KeyboardButton(text = "2.Фамилия")
+        ],
+        [
+            KeyboardButton(text = '3.Отчество')
+        ],
+        [
+            KeyboardButton(text = '4.Возраст')
+        ],
+        [
+            KeyboardButton(text = '5.Статус')
+        ],
+        [
+            KeyboardButton(text = '6.Город')
+        ],
+        [
+            KeyboardButton(text = '7.Место обучения')
+        ],
+        [
+            KeyboardButton(text = '8.Номер телефона')
+        ],
+        [
+            KeyboardButton(text = '9.Тип работы')
+        ],
+
+    ],
+    resize_keyboard=True,
+    input_field_placeholder="Выберите один из вариантов в клавиатуре"
+)
