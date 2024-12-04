@@ -14,6 +14,7 @@ class User(StatesGroup):
         age = State()
         id_file = State()
         id_account = State()
+        main_menu = State()
 
 
 client = User()
