@@ -14,8 +14,8 @@ router = Router()
 bot = Bot(token='7962043379:AAGXTLRJIlnnDG0nfKHbrGmCkQ_FWo8zdYQ')
 redux_row = 0
 choice_item = 0
-book_name = 'event.xlsx'
-sheet_name = 'event'
+book_name = 'event.xlsx' #название excel файла
+sheet_name = 'event' #название листа смотри в самом файле excel
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     cl.client.full_name = message.from_user.full_name  # Полное имя пользователя
@@ -172,8 +172,11 @@ async def photo_handler(message : Message,state: FSMContext):
     photo = message.photo[-1]
     photo_id = photo.file_id
     file_info = await bot.get_file(photo_id)
+    print("ITS FILE INFO!!!", file_info.file_path.split('.')[-1])
+    format = file_info.file_path.split('.')[-1]
     data = await state.get_data()
-    await bot.download_file(file_info.file_path,f'{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.jpg')
+    cl.client.num_of_photo += 1
+    await bot.download_file(file_info.file_path,f'{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
     await message.answer(f"имя: {data['real_first_name']}\n"
                          f" фамилия: {data['real_second_name']}\n"
                          f" отчество: {data['real_third_name']}\n"
@@ -185,7 +188,7 @@ async def photo_handler(message : Message,state: FSMContext):
                          f" тип работы: {data['type_of_work']}")
 
 
-    fn = 'event.xlsx'
+
     wb = load_workbook(book_name)
     ws = wb[sheet_name]
 
@@ -208,3 +211,135 @@ async def photo_handler(message : Message,state: FSMContext):
     await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)", reply_markup=kb.start_keyboard)
     await state.clear()
 
+
+@router.message(F.document)
+async def photo_handler(message : Message,state: FSMContext):
+    doc = message.document
+    doc_id = doc.file_id
+    file_info = await bot.get_file(doc_id)
+    print("ITS FILE INFO!!!",file_info.file_path.split('.'))
+    format = file_info.file_path.split('.')[-1]
+    data = await state.get_data()
+    cl.client.num_of_photo += 1
+    await bot.download_file(file_info.file_path,f'{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
+    await message.answer(f"имя: {data['real_first_name']}\n"
+                         f" фамилия: {data['real_second_name']}\n"
+                         f" отчество: {data['real_third_name']}\n"
+                         f" возраст: {data['age']}\n"
+                         f" статус: {data['school_or_student']}\n"
+                         f" город: {data['city']}\n"
+                         f" место обучения: {data['education_place']}\n"
+                         f" телефон: {data['phone_number']}\n"
+                         f" тип работы: {data['type_of_work']}")
+
+
+
+    wb = load_workbook(book_name)
+    ws = wb[sheet_name]
+
+    ws.append([f" {data['real_first_name']}",
+                         f" {data['real_second_name']}",
+                         f" {data['real_third_name']}",
+                         f" {data['age']}",
+                         f" {data['school_or_student']}",
+                         f" {data['city']}",
+                         f" {data['education_place']}",
+                         f" {data['phone_number']}",
+                         f" {data['type_of_work']}",
+                         f" {data['id_account']}"[1:]
+               ])
+    wb.save(book_name)
+    wb.close()
+
+
+
+    await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)", reply_markup=kb.start_keyboard)
+    await state.clear()
+
+@router.message(F.audio)
+async def photo_handler(message : Message,state: FSMContext):
+    doc = message.audio
+    doc_id = doc.file_id
+    file_info = await bot.get_file(doc_id)
+    print("ITS FILE INFO!!!",file_info.file_path.split('.'))
+    format = file_info.file_path.split('.')[-1]
+    data = await state.get_data()
+    cl.client.num_of_photo += 1
+    await bot.download_file(file_info.file_path,f'{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
+    await message.answer(f"имя: {data['real_first_name']}\n"
+                         f" фамилия: {data['real_second_name']}\n"
+                         f" отчество: {data['real_third_name']}\n"
+                         f" возраст: {data['age']}\n"
+                         f" статус: {data['school_or_student']}\n"
+                         f" город: {data['city']}\n"
+                         f" место обучения: {data['education_place']}\n"
+                         f" телефон: {data['phone_number']}\n"
+                         f" тип работы: {data['type_of_work']}")
+
+
+
+    wb = load_workbook(book_name)
+    ws = wb[sheet_name]
+
+    ws.append([f" {data['real_first_name']}",
+                         f" {data['real_second_name']}",
+                         f" {data['real_third_name']}",
+                         f" {data['age']}",
+                         f" {data['school_or_student']}",
+                         f" {data['city']}",
+                         f" {data['education_place']}",
+                         f" {data['phone_number']}",
+                         f" {data['type_of_work']}",
+                         f" {data['id_account']}"[1:]
+               ])
+    wb.save(book_name)
+    wb.close()
+
+
+
+    await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)", reply_markup=kb.start_keyboard)
+    await state.clear()
+
+@router.message(F.video)
+async def photo_handler(message : Message,state: FSMContext):
+    doc = message.video
+    doc_id = doc.file_id
+    file_info = await bot.get_file(doc_id)
+    print("ITS FILE INFO!!!",file_info.file_path.split('.'))
+    format = file_info.file_path.split('.')[-1]
+    data = await state.get_data()
+    cl.client.num_of_photo += 1
+    await bot.download_file(file_info.file_path,f'{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
+    await message.answer(f"имя: {data['real_first_name']}\n"
+                         f" фамилия: {data['real_second_name']}\n"
+                         f" отчество: {data['real_third_name']}\n"
+                         f" возраст: {data['age']}\n"
+                         f" статус: {data['school_or_student']}\n"
+                         f" город: {data['city']}\n"
+                         f" место обучения: {data['education_place']}\n"
+                         f" телефон: {data['phone_number']}\n"
+                         f" тип работы: {data['type_of_work']}")
+
+
+
+    wb = load_workbook(book_name)
+    ws = wb[sheet_name]
+
+    ws.append([f" {data['real_first_name']}",
+                         f" {data['real_second_name']}",
+                         f" {data['real_third_name']}",
+                         f" {data['age']}",
+                         f" {data['school_or_student']}",
+                         f" {data['city']}",
+                         f" {data['education_place']}",
+                         f" {data['phone_number']}",
+                         f" {data['type_of_work']}",
+                         f" {data['id_account']}"[1:]
+               ])
+    wb.save(book_name)
+    wb.close()
+
+
+
+    await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)", reply_markup=kb.start_keyboard)
+    await state.clear()
