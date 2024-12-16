@@ -16,7 +16,11 @@ class User(StatesGroup):
         id_account = State()
         redux_mod = State()
         redux_mod_2 = State()
+        redux_mod_3 = State()
         num_of_photo = 0
+        num_of_bid = 0
+        bid_for_redux = []
+        dict_redux_bid = {}
 
 
 client = User()
