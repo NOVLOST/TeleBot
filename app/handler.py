@@ -15,7 +15,7 @@ bot = Bot(token='7962043379:AAGXTLRJIlnnDG0nfKHbrGmCkQ_FWo8zdYQ')
 redux_row = 0
 choice_item = 0
 book_name = 'event.xlsx' #название excel файла
-sheet_name = 'event' #название листа смотри в самом файле excel
+sheet_name = 'Лист1' #название листа смотри в самом файле excel
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     cl.client.full_name = message.from_user.full_name  # Полное имя пользователя
@@ -27,6 +27,39 @@ async def cmd_start(message: Message):
 async def cmd_help(message: Message):
     await message.answer("Пройди короткую регистрацию для участия в конкурсе!")
 
+@router.message(F.text == 'Назад')
+async def cmd_help(message: Message):
+    await message.answer("Главное меню", reply_markup=kb.start_keyboard)
+
+@router.message(F.text == "Профиль 👤")
+async def cmd_profile(message: Message):
+    book = openpyxl.open('event.xlsx', read_only=True)
+    sheet = book.active
+    flag = False
+    for row in range(1, sheet.max_row + 1):
+
+        if sheet[row][9].value == str(message.from_user.id):
+
+            await message.answer(
+                f"ЗАЯВКА № {sheet[row][10].value}\n\n"
+                f"имя: {sheet[row][0].value}\n"
+                f"фамилия: {sheet[row][1].value}\n"
+                f"отчество: {sheet[row][2].value}\n"
+                f"возраст: {sheet[row][3].value}\n"
+                f"статус: {sheet[row][4].value}\n"
+                f"город: {sheet[row][5].value}\n"
+                f"место обучения: {sheet[row][6].value}\n"
+                f"номер телефона: {sheet[row][7].value}\n"
+                f"тип работы: {sheet[row][8].value}"
+            )
+            flag = True
+
+
+        else:
+            continue
+    if flag == False:
+        await message.answer("У вас нет заявок!")
+
 @router.message(F.text == "Редактировать заявку ✏️")
 async def cmd_redux(message: Message,state: FSMContext):
     global redux_row
@@ -36,7 +69,9 @@ async def cmd_redux(message: Message,state: FSMContext):
     for row in range(1,sheet.max_row+1):
         print(sheet[row][9].value)
         if sheet[row][9].value == str(message.from_user.id):
+
             await message.answer(
+                                 f"ЗАЯВКА № {sheet[row][10].value}\n\n"
                                  f"имя: {sheet[row][0].value}\n"
                                  f"фамилия: {sheet[row][1].value}\n"
                                  f"отчество: {sheet[row][2].value}\n"
@@ -48,22 +83,35 @@ async def cmd_redux(message: Message,state: FSMContext):
                                  f"тип работы: {sheet[row][8].value}"
                                  )
             flag = True
-            redux_row = row
+            cl.client.dict_redux_bid[str(sheet[row][10].value)] = row
             await state.set_state(cl.client.redux_mod)
-            await message.answer("Выберите один из пунктов на клавиатуре",reply_markup=kb.redux_bid)
+            await message.answer("Введите номер заявки ",reply_markup=ReplyKeyboardRemove())
         else:
             continue
     if flag == False:
         await message.answer("У вас нет заявок!")
 
-@router.message(cl.client.redux_mod)
+@router.message(F.text and cl.client.redux_mod)
+async def good_or_bad(message: Message,state: FSMContext):
+    global redux_row
+    print(cl.client.dict_redux_bid)
+    if message.text in cl.client.dict_redux_bid:
+        await state.set_state(cl.client.redux_mod_2)
+        redux_row = cl.client.dict_redux_bid[f'{message.text}']
+        await message.answer("Отлично что бы вы хотели изменить ?",reply_markup=kb.redux_bid)
+    else:
+        await message.answer("Введите корректный номер заявки")
+
+
+
+@router.message(cl.client.redux_mod_2)
 async def redux_mod(message: Message,state: FSMContext):
     global choice_item
     choice_item = int(message.text[0]) - 1
-    await state.set_state(cl.client.redux_mod_2)
+    await state.set_state(cl.client.redux_mod_3)
     await message.answer("Введите новое значение",reply_markup=ReplyKeyboardRemove())
 
-@router.message(cl.client.redux_mod_2)
+@router.message(cl.client.redux_mod_3)
 async def redux_mod(message: Message,state: FSMContext):
     new_value = message.text
 
@@ -89,7 +137,7 @@ async def registration(message: Message, state: FSMContext):
     await state.update_data(id_account = message.from_user.id)
     print(message.from_user.id)
     await state.set_state(cl.client.real_first_name)
-    await message.answer('Введите ваше имя',reply_markup=ReplyKeyboardRemove())
+    await message.answer('Введите ваше имя',reply_markup=kb.back_button)
 
 @router.message(cl.client.real_first_name)
 async def reg_real_first_name(message: Message, state: FSMContext):
@@ -176,7 +224,18 @@ async def photo_handler(message : Message,state: FSMContext):
     format = file_info.file_path.split('.')[-1]
     data = await state.get_data()
     cl.client.num_of_photo += 1
-    await bot.download_file(file_info.file_path,f'{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
+    book = openpyxl.open('event.xlsx', read_only=True)
+    sheet = book.active
+
+    for row in range(1, sheet.max_row + 1):
+        print(sheet[row][9].value)
+        if sheet[row][9].value == str(message.from_user.id):
+
+                cl.client.num_of_bid = int(sheet[row][10].value)
+
+
+    cl.client.num_of_bid += 1
+    await bot.download_file(file_info.file_path,f'фото\{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
     await message.answer(f"имя: {data['real_first_name']}\n"
                          f" фамилия: {data['real_second_name']}\n"
                          f" отчество: {data['real_third_name']}\n"
@@ -187,10 +246,10 @@ async def photo_handler(message : Message,state: FSMContext):
                          f" телефон: {data['phone_number']}\n"
                          f" тип работы: {data['type_of_work']}")
 
-
-
     wb = load_workbook(book_name)
     ws = wb[sheet_name]
+
+
 
     ws.append([f" {data['real_first_name']}",
                          f" {data['real_second_name']}",
@@ -201,7 +260,8 @@ async def photo_handler(message : Message,state: FSMContext):
                          f" {data['education_place']}",
                          f" {data['phone_number']}",
                          f" {data['type_of_work']}",
-                         f" {data['id_account']}"[1:]
+                         f" {data['id_account']}"[1:],
+                         f"{cl.client.num_of_bid}"
                ])
     wb.save(book_name)
     wb.close()
@@ -221,7 +281,17 @@ async def photo_handler(message : Message,state: FSMContext):
     format = file_info.file_path.split('.')[-1]
     data = await state.get_data()
     cl.client.num_of_photo += 1
-    await bot.download_file(file_info.file_path,f'{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
+
+    book = openpyxl.open('event.xlsx', read_only=True)
+    sheet = book.active
+
+    for row in range(1, sheet.max_row + 1):
+        print(sheet[row][9].value)
+        if sheet[row][9].value == str(message.from_user.id):
+            cl.client.num_of_bid = int(sheet[row][10].value)
+
+    cl.client.num_of_bid += 1
+    await bot.download_file(file_info.file_path,f'документы\{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
     await message.answer(f"имя: {data['real_first_name']}\n"
                          f" фамилия: {data['real_second_name']}\n"
                          f" отчество: {data['real_third_name']}\n"
@@ -246,7 +316,8 @@ async def photo_handler(message : Message,state: FSMContext):
                          f" {data['education_place']}",
                          f" {data['phone_number']}",
                          f" {data['type_of_work']}",
-                         f" {data['id_account']}"[1:]
+                         f" {data['id_account']}"[1:],
+                         f"{cl.client.num_of_bid}"
                ])
     wb.save(book_name)
     wb.close()
@@ -265,7 +336,17 @@ async def photo_handler(message : Message,state: FSMContext):
     format = file_info.file_path.split('.')[-1]
     data = await state.get_data()
     cl.client.num_of_photo += 1
-    await bot.download_file(file_info.file_path,f'{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
+
+    book = openpyxl.open('event.xlsx', read_only=True)
+    sheet = book.active
+
+    for row in range(1, sheet.max_row + 1):
+        print(sheet[row][9].value)
+        if sheet[row][9].value == str(message.from_user.id):
+            cl.client.num_of_bid = int(sheet[row][10].value)
+
+    cl.client.num_of_bid += 1
+    await bot.download_file(file_info.file_path,f'аудио\{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
     await message.answer(f"имя: {data['real_first_name']}\n"
                          f" фамилия: {data['real_second_name']}\n"
                          f" отчество: {data['real_third_name']}\n"
@@ -290,7 +371,8 @@ async def photo_handler(message : Message,state: FSMContext):
                          f" {data['education_place']}",
                          f" {data['phone_number']}",
                          f" {data['type_of_work']}",
-                         f" {data['id_account']}"[1:]
+                         f" {data['id_account']}"[1:],
+                         f"{cl.client.num_of_bid}"
                ])
     wb.save(book_name)
     wb.close()
@@ -309,7 +391,17 @@ async def photo_handler(message : Message,state: FSMContext):
     format = file_info.file_path.split('.')[-1]
     data = await state.get_data()
     cl.client.num_of_photo += 1
-    await bot.download_file(file_info.file_path,f'{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
+
+    book = openpyxl.open('event.xlsx', read_only=True)
+    sheet = book.active
+
+    for row in range(1, sheet.max_row + 1):
+        print(sheet[row][9].value)
+        if sheet[row][9].value == str(message.from_user.id):
+            cl.client.num_of_bid = int(sheet[row][10].value)
+
+    cl.client.num_of_bid += 1
+    await bot.download_file(file_info.file_path,f'видео\{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
     await message.answer(f"имя: {data['real_first_name']}\n"
                          f" фамилия: {data['real_second_name']}\n"
                          f" отчество: {data['real_third_name']}\n"
@@ -334,7 +426,8 @@ async def photo_handler(message : Message,state: FSMContext):
                          f" {data['education_place']}",
                          f" {data['phone_number']}",
                          f" {data['type_of_work']}",
-                         f" {data['id_account']}"[1:]
+                         f" {data['id_account']}"[1:],
+                         f"{cl.client.num_of_bid}"
                ])
     wb.save(book_name)
     wb.close()
