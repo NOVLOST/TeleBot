@@ -64,6 +64,9 @@ choice_type_of_work = ReplyKeyboardMarkup(
 redux_bid = ReplyKeyboardMarkup(
     keyboard = [
         [
+            KeyboardButton(text = 'Назад')
+        ],
+        [
             KeyboardButton(text = '1.Имя')
         ],
         [
@@ -94,4 +97,14 @@ redux_bid = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True,
     input_field_placeholder="Выберите один из вариантов в клавиатуре"
+)
+
+back_button = ReplyKeyboardMarkup(
+    keyboard = [
+        [
+            KeyboardButton(text = 'Назад')
+        ]
+    ],
+    resize_keyboard=True
+
 )
