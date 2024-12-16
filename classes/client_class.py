@@ -16,6 +16,7 @@ class User(StatesGroup):
         id_account = State()
         redux_mod = State()
         redux_mod_2 = State()
+        num_of_photo = 0
 
 
 client = User()
