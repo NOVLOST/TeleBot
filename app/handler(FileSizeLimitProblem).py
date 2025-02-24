@@ -1,9 +1,8 @@
 from aiogram import F, Router,Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery,ReplyKeyboardRemove
-from aiogram.filters import CommandStart, Command
+from aiogram.types import Message,CallbackQuery,ReplyKeyboardRemove
+from aiogram.filters import CommandStart
 from openpyxl import load_workbook
-import openpyxl
 
 
 import app.keyboards as kb
@@ -58,7 +57,7 @@ async def cmd_profile(message: Message):
 
         else:
             continue
-    if flag == False:
+    if not flag:
         book.save(book_name)
         book.close()
         await message.answer("У вас нет заявок!")
@@ -72,7 +71,7 @@ async def cmd_redux(message: Message,state: FSMContext):
     sheet = book[sheet_name]
     flag = False
     for row in range(1,sheet.max_row+1):
-        print(sheet[row][9].value)
+
         if sheet[row][9].value == str(message.from_user.id):
 
             await message.answer(
@@ -94,7 +93,7 @@ async def cmd_redux(message: Message,state: FSMContext):
         else:
             continue
 
-    if flag == False:
+    if not flag :
         await message.answer("У вас нет заявок!")
     else:
         await message.answer("Введите номер заявки ", reply_markup=ReplyKeyboardRemove())
@@ -139,14 +138,13 @@ async def redux_mod(message: Message,state: FSMContext):
 @router.message(F.text == "Создать новую заявку 📝")
 async def registration(message: Message, state: FSMContext):
     await state.update_data(id_account = message.from_user.id)
-    print(message.from_user.id)
+    print(f'{message.from_user.full_name}\n',message.from_user.id)
     await state.set_state(cl.client.real_first_name)
     await message.answer('Введите ваше имя',reply_markup=kb.back_button)
 
 @router.message(cl.client.real_first_name)
 async def reg_real_first_name(message: Message, state: FSMContext):
     await state.update_data(real_first_name = message.text )
-    data = await state.get_data()
     await state.set_state(cl.client.real_second_name)
     await message.answer("Введите вашу фамилию")
 
@@ -224,235 +222,68 @@ async def photo_handler(message : Message,state: FSMContext):
     photo = message.photo[-1]
     photo_id = photo.file_id
     file_info = await bot.get_file(photo_id)
-    # print("ITS FILE INFO!!!", file_info.file_path.split('.')[-1])
     format = file_info.file_path.split('.')[-1]
     data = await state.get_data()
     cl.client.num_of_photo += 1
     await state.set_state(cl.client.download)
     await bot.download_file(file_info.file_path,
 f'photo\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
-
-    # for row in range(1, sheet.max_row + 1):
-    #     print(sheet[row][9].value)
-    #     if sheet[row][9].value == str(message.from_user.id):
-    #
-    #             cl.client.num_of_bid = int(sheet[row][10].value)
-    #
-    #
-    # cl.client.num_of_bid += 1
-    # await message.answer(f"имя: {data['real_first_name']}\n"
-    #                      f" фамилия: {data['real_second_name']}\n"
-    #                      f" отчество: {data['real_third_name']}\n"
-    #                      f" возраст: {data['age']}\n"
-    #                      f" статус: {data['school_or_student']}\n"
-    #                      f" город: {data['city']}\n"
-    #                      f" место обучения: {data['education_place']}\n"
-    #                      f" телефон: {data['phone_number']}\n"
-    #                      f" тип работы: {data['type_of_work']}")
-    #
-    # wb = load_workbook(book_name)
-    # ws = wb[sheet_name]
-    #
-    #
-    #
-    # ws.append([f" {data['real_first_name']}",
-    #                      f" {data['real_second_name']}",
-    #                      f" {data['real_third_name']}",
-    #                      f" {data['age']}",
-    #                      f" {data['school_or_student']}",
-    #                      f" {data['city']}",
-    #                      f" {data['education_place']}",
-    #                      f" {data['phone_number']}",
-    #                      f" {data['type_of_work']}",
-    #                      f" {data['id_account']}"[1:],
-    #                      f"{cl.client.num_of_bid}"
-    #            ])
-    # wb.save(book_name)
-    # wb.close()
-    #
-    #
-    #
-    # await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)", reply_markup=kb.start_keyboard)
-    # await state.clear()
-
+    print(f'photo\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+    await message.answer("отправте любое сообщение для продолжения ")
 
 @router.message(F.document)
 async def photo_handler(message : Message,state: FSMContext):
     doc = message.document
     doc_id = doc.file_id
     file_info = await bot.get_file(doc_id)
-    print("ITS FILE INFO!!!",file_info.file_path.split('.'))
     format = file_info.file_path.split('.')[-1]
     data = await state.get_data()
     await state.set_state(cl.client.download)
     await bot.download_file(file_info.file_path,
 f'documents\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+    print(
+        f'documents\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+    await message.answer("отправте любое сообщение для продолжения ")
 
-#     for row in range(1, sheet.max_row + 1):
-#         print(sheet[row][9].value)
-#         if sheet[row][9].value == str(message.from_user.id):
-#             cl.client.num_of_bid = int(sheet[row][10].value)
-#
-#     cl.client.num_of_bid += 1
-#     await bot.download_file(file_info.file_path,
-# f'документы/{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
-#     await message.answer(f"имя: {data['real_first_name']}\n"
-#                          f" фамилия: {data['real_second_name']}\n"
-#                          f" отчество: {data['real_third_name']}\n"
-#                          f" возраст: {data['age']}\n"
-#                          f" статус: {data['school_or_student']}\n"
-#                          f" город: {data['city']}\n"
-#                          f" место обучения: {data['education_place']}\n"
-#                          f" телефон: {data['phone_number']}\n"
-#                          f" тип работы: {data['type_of_work']}")
-#
-#
-#
-#     wb = load_workbook(book_name)
-#     ws = wb[sheet_name]
-#
-#     ws.append([f" {data['real_first_name']}",
-#                          f" {data['real_second_name']}",
-#                          f" {data['real_third_name']}",
-#                          f" {data['age']}",
-#                          f" {data['school_or_student']}",
-#                          f" {data['city']}",
-#                          f" {data['education_place']}",
-#                          f" {data['phone_number']}",
-#                          f" {data['type_of_work']}",
-#                          f" {data['id_account']}"[1:],
-#                          f"{cl.client.num_of_bid}"
-#                ])
-#     wb.save(book_name)
-#     wb.close()
-#
-#
-#
-#     await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)", reply_markup=kb.start_keyboard)
-#     await state.clear()
 
 @router.message(F.audio)
 async def photo_handler(message : Message,state: FSMContext):
     doc = message.audio
     doc_id = doc.file_id
     file_info = await bot.get_file(doc_id)
-    # print("ITS FILE INFO!!!",file_info.file_path.split('.'))
     format = file_info.file_path.split('.')[-1]
     data = await state.get_data()
     await state.set_state(cl.client.download)
     await bot.download_file(file_info.file_path,
 f'audio\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+    print(
+        f'audio\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+    await message.answer("отправте любое сообщение для продолжения ")
 
-    # book = openpyxl.open('event.xlsx', read_only=True)
-    # sheet = book.active
-    #
-    # for row in range(1, sheet.max_row + 1):
-    #     print(sheet[row][9].value)
-    #     if sheet[row][9].value == str(message.from_user.id):
-    #         cl.client.num_of_bid = int(sheet[row][10].value)
-    #
-    # cl.client.num_of_bid += 1
-    # await bot.download_file(file_info.file_path,f'аудио/{cl.client.num_of_photo}_{data["real_first_name"]} {data["real_second_name"]} {data["id_account"]}.{format}')
-    # await message.answer(f"имя: {data['real_first_name']}\n"
-    #                      f" фамилия: {data['real_second_name']}\n"
-    #                      f" отчество: {data['real_third_name']}\n"
-    #                      f" возраст: {data['age']}\n"
-    #                      f" статус: {data['school_or_student']}\n"
-    #                      f" город: {data['city']}\n"
-    #                      f" место обучения: {data['education_place']}\n"
-    #                      f" телефон: {data['phone_number']}\n"
-    #                      f" тип работы: {data['type_of_work']}")
-    #
-    #
-    #
-    # wb = load_workbook(book_name)
-    # ws = wb[sheet_name]
-    #
-    # ws.append([f" {data['real_first_name']}",
-    #                      f" {data['real_second_name']}",
-    #                      f" {data['real_third_name']}",
-    #                      f" {data['age']}",
-    #                      f" {data['school_or_student']}",
-    #                      f" {data['city']}",
-    #                      f" {data['education_place']}",
-    #                      f" {data['phone_number']}",
-    #                      f" {data['type_of_work']}",
-    #                      f" {data['id_account']}"[1:],
-    #                      f"{cl.client.num_of_bid}"
-    #            ])
-    # wb.save(book_name)
-    # wb.close()
-    #
-    #
-    #
-    # await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)", reply_markup=kb.start_keyboard)
-    # await state.clear()
 
 @router.message(F.video)
 async def photo_handler(message : Message,state: FSMContext):
     doc = message.video
     doc_id = doc.file_id
     file_info = await bot.get_file(doc_id)
-    print("ITS FILE INFO!!!",file_info.file_path.split('.'))
     format = file_info.file_path.split('.')[-1]
     data = await state.get_data()
-    await state.set_state(cl.client.download)
     await bot.download_file(file_info.file_path,
 f'video\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
     await state.set_state(cl.client.download)
-    # book = load_workbook(book_name)
-    # sheet = wb[sheet_name]
-    # data = await state.get_data()
-    # for row in range(1, sheet.max_row + 1):
-    #     print(sheet[row][9].value)
-    #     if sheet[row][9].value == str(message.from_user.id):
-    #         cl.client.num_of_bid = int(sheet[row][10].value)
-    #
-    # cl.client.num_of_bid += 1
-    #
-    # await message.answer(f"имя: {data['real_first_name']}\n"
-    #                      f" фамилия: {data['real_second_name']}\n"
-    #                      f" отчество: {data['real_third_name']}\n"
-    #                      f" возраст: {data['age']}\n"
-    #                      f" статус: {data['school_or_student']}\n"
-    #                      f" город: {data['city']}\n"
-    #                      f" место обучения: {data['education_place']}\n"
-    #                      f" телефон: {data['phone_number']}\n"
-    #                      f" тип работы: {data['type_of_work']}")
-    #
-    #
-    #
-    # book = load_workbook(book_name)
-    # sheet = book[sheet_name]
-    #
-    # ws.append([f" {data['real_first_name']}",
-    #                      f" {data['real_second_name']}",
-    #                      f" {data['real_third_name']}",
-    #                      f" {data['age']}",
-    #                      f" {data['school_or_student']}",
-    #                      f" {data['city']}",
-    #                      f" {data['education_place']}",
-    #                      f" {data['phone_number']}",
-    #                      f" {data['type_of_work']}",
-    #                      f" {data['id_account']}"[1:],
-    #                      f"{cl.client.num_of_bid}"
-    #            ])
-    # wb.save(book_name)
-    # wb.close()
-    #
-    #
-    #
-    # await message.answer("Все верно? если допустили ошибку попроси меня для редактирования заявки ;)", reply_markup=kb.start_keyboard)
-    # await state.clear()
+    print(
+        f'video\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+    await message.answer("отправте любое сообщение для продолжения ")
+
 
 @router.message(cl.client.download)
-async def download_handler(message : Message, state: FSMContext):
-    print("I HERE")
+async def download_handler(message: Message, state: FSMContext):
+    await message.answer("Ваша заявка")
     book = load_workbook(book_name)
     sheet = book[sheet_name]
     data = await state.get_data()
     for row in range(1, sheet.max_row + 1):
-        print(sheet[row][9].value)
+
         if sheet[row][9].value == str(message.from_user.id):
             cl.client.num_of_bid = int(sheet[row][10].value)
 
