@@ -9,6 +9,7 @@ async def main():
 
     dp = Dispatcher()
     dp.include_router(router)
+    print("Бот включен")
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
