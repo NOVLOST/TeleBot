@@ -15,6 +15,8 @@ redux_row = 0 # номер заявки для редактирования
 choice_item = 0 # номер заявки для редактирования
 book_name = 'event.xlsx' #название excel файла
 sheet_name = 'event' #название листа смотри в самом файле excel
+with open("Drive_Link.txt", "r") as file:
+    drive_link = file.readline()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
@@ -219,61 +221,85 @@ async def reg_work(message: Message, state: FSMContext):
 
 @router.message(F.photo)
 async def photo_handler(message : Message,state: FSMContext):
-    photo = message.photo[-1]
-    photo_id = photo.file_id
-    file_info = await bot.get_file(photo_id)
-    format = file_info.file_path.split('.')[-1]
-    data = await state.get_data()
-    cl.client.num_of_photo += 1
-    await state.set_state(cl.client.download)
-    await bot.download_file(file_info.file_path,
-f'photo\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
-    print(f'photo\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
-    await message.answer("отправте любое сообщение для продолжения ")
+    try:
+        photo = message.photo[-1]
+        photo_id = photo.file_id
+        file_info = await bot.get_file(photo_id)
+        format = file_info.file_path.split('.')[-1]
+        data = await state.get_data()
+        cl.client.num_of_photo += 1
+        await state.set_state(cl.client.download)
+        await bot.download_file(file_info.file_path,
+    f'photo\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+        print(f'photo\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+        await message.answer("отправте любое сообщение для продолжения ")
+    except:
+        await message.answer(f" файл симшком большой отправте его на облако {drive_link}")
+        await state.set_state(cl.client.download)
+        await message.answer("отправте любое сообщение для продолжения ")
 
 @router.message(F.document)
 async def photo_handler(message : Message,state: FSMContext):
-    doc = message.document
-    doc_id = doc.file_id
-    file_info = await bot.get_file(doc_id)
-    format = file_info.file_path.split('.')[-1]
-    data = await state.get_data()
-    await state.set_state(cl.client.download)
-    await bot.download_file(file_info.file_path,
-f'documents\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
-    print(
-        f'documents\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
-    await message.answer("отправте любое сообщение для продолжения ")
-
+    try :
+        doc = message.document
+        doc_id = doc.file_id
+        file_info = await bot.get_file(doc_id)
+        format = file_info.file_path.split('.')[-1]
+        data = await state.get_data()
+        await state.set_state(cl.client.download)
+        await bot.download_file(file_info.file_path,
+    f'documents\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+        print(
+            f'documents\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+        await message.answer("отправте любое сообщение для продолжения ")
+    except:
+        await message.answer(f" файл симшком большой отправте его на облако {drive_link}")
+        await state.set_state(cl.client.download)
+        await message.answer("отправте любое сообщение для продолжения ")
 
 @router.message(F.audio)
 async def photo_handler(message : Message,state: FSMContext):
-    doc = message.audio
-    doc_id = doc.file_id
-    file_info = await bot.get_file(doc_id)
-    format = file_info.file_path.split('.')[-1]
-    data = await state.get_data()
-    await state.set_state(cl.client.download)
-    await bot.download_file(file_info.file_path,
-f'audio\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
-    print(
-        f'audio\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
-    await message.answer("отправте любое сообщение для продолжения ")
-
+    try:
+        doc = message.audio
+        doc_size = doc.file_size
+        if (int(doc_size) / (1024 ** 2) == 20):
+            await message.answer(f" файл симшком большой отправте его на облако {drive_link}")
+        doc_id = doc.file_id
+        file_info = await bot.get_file(doc_id)
+        format = file_info.file_path.split('.')[-1]
+        data = await state.get_data()
+        await state.set_state(cl.client.download)
+        await bot.download_file(file_info.file_path,
+    f'audio\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+        print(
+            f'audio\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+        await message.answer("отправте любое сообщение для продолжения ")
+    except:
+        await message.answer(f" файл симшком большой отправте его на облако {drive_link}")
+        await state.set_state(cl.client.download)
+        await message.answer("отправте любое сообщение для продолжения ")
 
 @router.message(F.video)
 async def photo_handler(message : Message,state: FSMContext):
-    doc = message.video
-    doc_id = doc.file_id
-    file_info = await bot.get_file(doc_id)
-    format = file_info.file_path.split('.')[-1]
-    data = await state.get_data()
-    await bot.download_file(file_info.file_path,
-f'video\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
-    await state.set_state(cl.client.download)
-    print(
-        f'video\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
-    await message.answer("отправте любое сообщение для продолжения ")
+    try:
+        doc = message.video
+        doc_size = doc.file_size
+        if (int(doc_size) / (1024 ** 2) == 20):
+            await message.answer(f" файл симшком большой отправте его на облако {drive_link}")
+        doc_id = doc.file_id
+        file_info = await bot.get_file(doc_id)
+        format = file_info.file_path.split('.')[-1]
+        data = await state.get_data()
+        await bot.download_file(file_info.file_path,
+    f'video\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+        await state.set_state(cl.client.download)
+        print(
+            f'video\\{cl.client.num_of_photo}_{data["real_first_name"]}_{data["real_second_name"]}_{data["id_account"]}.{format}')
+        await message.answer("отправте любое сообщение для продолжения ")
+    except:
+        await message.answer(f" файл симшком большой отправте его на облако {drive_link}")
+        await state.set_state(cl.client.download)
+        await message.answer("отправте любое сообщение для продолжения ")
 
 
 @router.message(cl.client.download)
